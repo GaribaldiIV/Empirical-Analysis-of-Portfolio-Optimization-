@@ -1,0 +1,852 @@
+import yfinance as yf
+import numpy as np
+import pandas as pd
+
+# List of tickers
+tickers = ['TSLA', 'AMZN', 'META', 'JNJ', 'XOM', 'JPM', 'KO', 'INTC', 'NFLX', 'PG']
+
+# Downloading the data
+data = yf.download(tickers, start='2018-01-01', end='2023-12-31')['Adj Close']
+
+# Calculating daily returns
+returns = data.pct_change().dropna()
+
+# Calculating the metrics
+stats = pd.DataFrame({
+    'Mean': returns.mean(),
+    'Std. Dev.': returns.std(),
+    'Skewness': returns.skew(),
+    'Kurtosis': returns.kurtosis()
+})
+
+# Display the dataframe
+print(stats)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+import yfinance as yf
+import numpy as np
+import pandas as pd
+
+# List of tickers
+tickers = ['AMZN', 'INTC', 'JNJ', 'JPM', 'KO', 'META', 'NFLX', 'PG', 'TSLA', 'XOM']
+
+# Downloading the data
+data = yf.download(tickers, start='2010-01-01', end='2023-12-31')['Adj Close']
+
+# Calculating daily returns
+returns = data.pct_change().dropna()
+
+# Calculating the metrics
+stats = pd.DataFrame({
+    'Mean': returns.mean(),
+    'Std. Dev.': returns.std(),
+    'Min Return': returns.min(),
+    'Max Return': returns.max(),
+    'Skewness': returns.skew(),
+    'Kurtosis': returns.kurtosis(),
+    'Median': returns.median(),
+    'Variance': returns.var()
+})
+
+# Display the dataframe with all the new metrics
+print(stats)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+import yfinance as yf
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Download stock data for the selected tickers
+tickers = ['TSLA', 'AMZN', 'META', 'JNJ', 'XOM', 'JPM', 'KO', 'INTC', 'NFLX', 'PG']
+data = yf.download(tickers, start='2010-01-01', end='2023-12-31')['Adj Close']
+
+# Calculate daily returns
+returns = data.pct_change().dropna()
+
+# Calculate the metrics for each stock
+metrics = pd.DataFrame({
+    'Mean': returns.mean(),
+    'Std. Dev.': returns.std(),
+    'Min Return': returns.min(),
+    'Max Return': returns.max(),
+    'Skewness': returns.skew(),
+    'Kurtosis': returns.kurtosis()
+})
+
+# Display the calculated metrics
+print(metrics)
+
+# Plot histograms for returns
+for ticker in tickers:
+    plt.figure(figsize=(10, 6))
+    sns.histplot(returns[ticker], kde=True, bins=50, color='blue')
+    plt.title(f'Histogram of {ticker} Returns with KDE')
+    plt.xlabel('Daily Return')
+    plt.ylabel('Frequency')
+    plt.grid(True)
+    plt.show()
+
+# Boxplot of returns for each stock
+plt.figure(figsize=(12, 8))
+sns.boxplot(data=returns)
+plt.title('Boxplot of Returns for Each Stock')
+plt.xlabel('Stock')
+plt.ylabel('Daily Return')
+plt.grid(True)
+plt.show()
+
+# KDE Plot of returns for all stocks
+plt.figure(figsize=(12, 8))
+for ticker in tickers:
+    sns.kdeplot(returns[ticker], label=ticker)
+plt.title('KDE Plot of Stock Returns')
+plt.xlabel('Daily Return')
+plt.ylabel('Density')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Plotting rolling volatility (30-day window)
+rolling_volatility = returns.rolling(window=30).std()
+plt.figure(figsize=(12, 8))
+for ticker in tickers:
+    plt.plot(rolling_volatility.index, rolling_volatility[ticker], label=ticker)
+plt.title('Rolling 30-day Volatility')
+plt.xlabel('Date')
+plt.ylabel('Volatility')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Pairplot for return correlations
+sns.pairplot(returns)
+plt.suptitle('Pairplot of Returns for Selected Stocks', y=1.02)
+plt.show()
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+import yfinance as yf
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Download stock data for the selected tickers
+tickers = ['TSLA', 'AMZN', 'META', 'JNJ', 'XOM', 'JPM', 'KO', 'INTC', 'NFLX', 'PG']
+data = yf.download(tickers, start='2015-01-01', end='2023-12-31')['Adj Close']
+
+# Calculate daily returns
+returns = data.pct_change().dropna()
+
+# Define a function to calculate the rolling Sharpe ratio
+def rolling_sharpe_ratio(returns, window, risk_free_rate=0.0001):
+    rolling_mean = returns.rolling(window=window).mean()
+    rolling_std = returns.rolling(window=window).std()
+    sharpe_ratio = (rolling_mean - risk_free_rate) / rolling_std
+    return sharpe_ratio
+
+# Plot setup
+plt.figure(figsize=(14, 8))
+
+# Define different rolling windows (30, 60, 120, 252 days)
+windows = [30, 60, 120, 252]
+colors = ['blue', 'green', 'red', 'purple']  # Different colors for different horizons
+
+# Plot rolling Sharpe ratios for each window for a specific stock (e.g., Tesla)
+stock = 'TSLA'
+
+for i, window in enumerate(windows):
+    rolling_sharpe = rolling_sharpe_ratio(returns[stock], window)
+    plt.plot(rolling_sharpe, label=f'{window}-day Rolling Sharpe Ratio', color=colors[i])
+
+# Add title and labels
+plt.title(f'Rolling Sharpe Ratio for {stock} Over Different Horizons', fontsize=16)
+plt.xlabel('Date', fontsize=12)
+plt.ylabel('Sharpe Ratio', fontsize=12)
+
+# Add legend
+plt.legend(loc='upper right')
+
+# Display the plot
+plt.grid(True)
+plt.show()
+
+# Now, plot rolling Sharpe ratios for all stocks with a 252-day horizon (1-year window)
+plt.figure(figsize=(14, 8))
+
+for ticker in tickers:
+    rolling_sharpe = rolling_sharpe_ratio(returns[ticker], 252)
+    plt.plot(rolling_sharpe, label=ticker)
+
+# Add title and labels
+plt.title('1-Year Rolling Sharpe Ratios for Selected Stocks', fontsize=16)
+plt.xlabel('Date', fontsize=12)
+plt.ylabel('Sharpe Ratio', fontsize=12)
+
+# Add legend
+plt.legend(loc='upper right')
+
+# Display the plot
+plt.grid(True)
+plt.show()
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
+# Sample sector weights categorized by sectors (use your actual weights here)
+sectors = {
+    'AAPL': 'Tech', 'GOOG': 'Tech', 'MSFT': 'Tech', 'TSLA': 'Automotive', 'AMZN': 'E-commerce', 
+    'META': 'Tech', 'JNJ': 'Healthcare', 'XOM': 'Energy', 'JPM': 'Finance', 'KO': 'Consumer', 
+    'INTC': 'Tech', 'NFLX': 'Media', 'PG': 'Consumer'
+}
+
+# Summing the weights by sector for the Max Sharpe portfolio
+tickers = list(sectors.keys())  # Assuming tickers is a list of the stock tickers
+# Replace 'optimal_sharpe' with your actual data for portfolio weights
+max_sharpe_weights = pd.Series([0.12, 0.08, 0.15, 0.04, 0.05, 0.10, 0.06, 0.07, 0.09, 0.05, 0.05, 0.07, 0.07], index=tickers)
+sector_weights = max_sharpe_weights.groupby(sectors).sum()
+
+# Pie chart of sector allocation
+plt.figure(figsize=(10, 8))
+
+# Create the pie chart with well-spaced labels
+plt.pie(sector_weights, 
+        labels=sector_weights.index, 
+        autopct='%1.1f%%', 
+        colors=sns.color_palette('Set2', len(sector_weights)), 
+        startangle=90, 
+        labeldistance=1.05,  # Moves the labels farther from the pie to avoid overlap
+        wedgeprops={'edgecolor': 'black', 'linewidth': 2, 'antialiased': True},
+        textprops={'fontsize': 14})
+
+# Set a more readable title
+plt.title('Max Sharpe Portfolio Sector Allocation', fontsize=20, fontweight='bold')
+
+# Use tight layout to avoid clipping
+plt.tight_layout()
+
+# Show the pie chart
+plt.show()
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import itertools
+
+# Sample data for demonstration
+np.random.seed(42)
+dates = pd.date_range(start="2018-01-01", periods=2400, freq='D')
+
+tickers = ['AAPL', 'GOOG', 'MSFT', 'TSLA', 'AMZN', 'META', 'JNJ', 'XOM', 'JPM', 'KO', 'INTC', 'NFLX', 'PG']
+num_tickers = len(tickers)
+returns = pd.DataFrame(np.random.randn(len(dates), num_tickers) / 100, index=dates, columns=tickers)
+
+risk_free_rate = 0.03
+rolling_volatility = returns.rolling(window=252).std() * np.sqrt(252)
+
+# 2. Rolling Sharpe Ratio (1-year rolling window)
+rolling_sharpe = (returns.rolling(window=252).mean() - risk_free_rate / 252) / rolling_volatility
+
+plt.figure(figsize=(14, 8))
+for ticker in tickers:
+    plt.plot(rolling_sharpe.index, rolling_sharpe[ticker], lw=2, label=ticker)
+
+plt.title('Rolling 1-Year Sharpe Ratio of Individual Stocks', fontsize=16, fontweight='bold')
+plt.xlabel('Date', fontsize=12)
+plt.ylabel('Sharpe Ratio (Annualized)', fontsize=12)
+plt.legend(loc='upper left', fontsize=12)
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.show()
+
+# 3. Pairwise Scatter Plots of Returns (selecting a few interesting pairs)
+stock_pairs = list(itertools.combinations(tickers, 2))  # All possible stock pairs
+
+# Plot a few pairs for visual correlation
+fig, axs = plt.subplots(4, 3, figsize=(18, 12))
+fig.suptitle('Pairwise Comparison of Stock Returns', fontsize=18, fontweight='bold')
+
+for ax, (stock1, stock2) in zip(axs.flatten(), stock_pairs[:12]):  # Just plotting the first 12 pairs
+    ax.scatter(returns[stock1], returns[stock2], alpha=0.5)
+    ax.set_xlabel(stock1, fontsize=12)
+    ax.set_ylabel(stock2, fontsize=12)
+    ax.grid(True, linestyle='--', alpha=0.6)
+
+plt.tight_layout()
+plt.show()
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+import yfinance as yf
+import itertools
+import matplotlib.pyplot as plt
+
+# Download stock data for selected tickers
+tickers = ['AAPL', 'GOOG', 'MSFT', 'TSLA', 'AMZN', 'META', 'JNJ', 'XOM', 'JPM', 'KO', 'INTC', 'NFLX', 'PG']
+data = yf.download(tickers, start="2018-01-01", end="2023-12-31")['Adj Close']
+
+# Calculate daily returns
+returns = data.pct_change().dropna()
+
+# 3. Pairwise Scatter Plots of Returns (selecting a few interesting pairs)
+stock_pairs = list(itertools.combinations(tickers, 2))  # All possible stock pairs
+
+# Plot a few pairs for visual correlation
+fig, axs = plt.subplots(4, 3, figsize=(18, 12))
+fig.suptitle('Pairwise Comparison of Stock Returns', fontsize=18, fontweight='bold')
+
+for ax, (stock1, stock2) in zip(axs.flatten(), stock_pairs[:12]):  # Just plotting the first 12 pairs
+    ax.scatter(returns[stock1], returns[stock2], alpha=0.5)
+    ax.set_xlabel(stock1, fontsize=12)
+    ax.set_ylabel(stock2, fontsize=12)
+    ax.grid(True, linestyle='--', alpha=0.6)
+
+plt.tight_layout()
+plt.show()
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+import yfinance as yf
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.optimize import minimize
+
+# Download stock data for all the mentioned tickers
+tickers = ['AAPL', 'GOOG', 'MSFT', 'TSLA', 'AMZN', 'META', 'JNJ', 'XOM', 'JPM', 'KO', 'INTC', 'NFLX', 'PG']
+data = yf.download(tickers, start="2018-01-01", end="2023-12-31")['Adj Close']
+
+# Calculate daily returns
+returns = data.pct_change().dropna()
+
+# Number of assets
+num_assets = len(tickers)
+
+# Mean returns and covariance matrix
+mean_returns = returns.mean()
+cov_matrix = returns.cov()
+
+# Risk-free rate (e.g., 3% annual)
+risk_free_rate = 0.03
+
+# Function to calculate portfolio performance: returns and volatility
+def portfolio_performance(weights, mean_returns, cov_matrix):
+    returns = np.sum(mean_returns * weights) * 252
+    volatility = np.sqrt(np.dot(weights.T, np.dot(cov_matrix * 252, weights)))
+    return returns, volatility
+
+# Function to calculate the Sharpe ratio
+def negative_sharpe_ratio(weights, mean_returns, cov_matrix, risk_free_rate):
+    p_returns, p_volatility = portfolio_performance(weights, mean_returns, cov_matrix)
+    return -(p_returns - risk_free_rate) / p_volatility
+
+# Function to minimize volatility (for minimum variance portfolio)
+def minimize_volatility(weights, mean_returns, cov_matrix):
+    return portfolio_performance(weights, mean_returns, cov_matrix)[1]
+
+# Constraints: Weights sum to 1
+constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
+
+# Bounds: No shorting (weights between 0 and 1)
+bounds = tuple((0, 1) for asset in range(num_assets))
+
+# Initial guess: Equal distribution
+initial_guess = num_assets * [1. / num_assets]
+
+# Optimize for maximum Sharpe ratio
+optimal_sharpe = minimize(negative_sharpe_ratio, initial_guess, args=(mean_returns, cov_matrix, risk_free_rate),
+                          method='SLSQP', bounds=bounds, constraints=constraints)
+max_sharpe_returns, max_sharpe_volatility = portfolio_performance(optimal_sharpe['x'], mean_returns, cov_matrix)
+
+# Optimize for minimum variance
+optimal_min_vol = minimize(minimize_volatility, initial_guess, args=(mean_returns, cov_matrix),
+                           method='SLSQP', bounds=bounds, constraints=constraints)
+min_vol_returns, min_vol_volatility = portfolio_performance(optimal_min_vol['x'], mean_returns, cov_matrix)
+
+# Plotting Max Sharpe Portfolio Weights
+plt.figure(figsize=(14, 7))
+plt.bar(tickers, optimal_sharpe['x'], color='orange')
+plt.title('Max Sharpe Ratio Portfolio Weights', fontsize=16, fontweight='bold')
+plt.ylabel('Weight', fontsize=12)
+plt.xticks(rotation=45)
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.show()
+
+# Plotting Min Volatility Portfolio Weights
+plt.figure(figsize=(14, 7))
+plt.bar(tickers, optimal_min_vol['x'], color='skyblue')
+plt.title('Minimum Volatility Portfolio Weights', fontsize=16, fontweight='bold')
+plt.ylabel('Weight', fontsize=12)
+plt.xticks(rotation=45)
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.show()
+
+# 2. Correlation Heatmap
+plt.figure(figsize=(10, 8))
+sns.heatmap(returns.corr(), annot=True, cmap='coolwarm', linewidths=0.5)
+plt.title('Correlation Heatmap of Stock Returns', fontsize=16, fontweight='bold')
+plt.xticks(rotation=45)
+plt.yticks(rotation=45)
+plt.show()
+
+# 3. Cumulative Returns of Individual Stocks
+cumulative_returns = (1 + returns).cumprod()
+
+plt.figure(figsize=(14, 8))
+for ticker in tickers:
+    plt.plot(cumulative_returns.index, cumulative_returns[ticker], lw=2, label=ticker)
+
+plt.title('Cumulative Returns of Individual Stocks', fontsize=16, fontweight='bold')
+plt.xlabel('Date', fontsize=12)
+plt.ylabel('Cumulative Return', fontsize=12)
+plt.legend(loc='upper left', fontsize=12)
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.show()
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+import yfinance as yf
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.optimize import minimize
+
+# Download stock data for all the mentioned tickers
+tickers = ['AAPL', 'GOOG', 'MSFT', 'TSLA', 'AMZN', 'META', 'JNJ', 'XOM', 'JPM', 'KO', 'INTC', 'NFLX', 'PG']
+data = yf.download(tickers, start="2018-01-01", end="2023-12-31")['Adj Close']
+
+# Calculate daily returns
+returns = data.pct_change().dropna()
+
+# Number of assets
+num_assets = len(tickers)
+
+# Mean returns and covariance matrix
+mean_returns = returns.mean()
+cov_matrix = returns.cov()
+
+# Risk-free rate (e.g., 3% annual)
+risk_free_rate = 0.03
+
+# Function to calculate portfolio performance: returns and volatility
+def portfolio_performance(weights, mean_returns, cov_matrix):
+    returns = np.sum(mean_returns * weights) * 252
+    volatility = np.sqrt(np.dot(weights.T, np.dot(cov_matrix * 252, weights)))
+    return returns, volatility
+
+# Function to calculate the Sharpe ratio
+def negative_sharpe_ratio(weights, mean_returns, cov_matrix, risk_free_rate):
+    p_returns, p_volatility = portfolio_performance(weights, mean_returns, cov_matrix)
+    return -(p_returns - risk_free_rate) / p_volatility
+
+# Function to minimize volatility (for minimum variance portfolio)
+def minimize_volatility(weights, mean_returns, cov_matrix):
+    return portfolio_performance(weights, mean_returns, cov_matrix)[1]
+
+# Constraints: Weights sum to 1
+constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
+
+# Bounds: No shorting (weights between 0 and 1)
+bounds = tuple((0, 1) for asset in range(num_assets))
+
+# Initial guess: Equal distribution
+initial_guess = num_assets * [1. / num_assets]
+
+# Optimize for maximum Sharpe ratio
+optimal_sharpe = minimize(negative_sharpe_ratio, initial_guess, args=(mean_returns, cov_matrix, risk_free_rate),
+                          method='SLSQP', bounds=bounds, constraints=constraints)
+max_sharpe_returns, max_sharpe_volatility = portfolio_performance(optimal_sharpe['x'], mean_returns, cov_matrix)
+
+# Optimize for minimum variance
+optimal_min_vol = minimize(minimize_volatility, initial_guess, args=(mean_returns, cov_matrix),
+                           method='SLSQP', bounds=bounds, constraints=constraints)
+min_vol_returns, min_vol_volatility = portfolio_performance(optimal_min_vol['x'], mean_returns, cov_matrix)
+
+# Generate random portfolios for the efficient frontier
+def generate_random_portfolios(num_portfolios, mean_returns, cov_matrix, risk_free_rate):
+    results = np.zeros((4, num_portfolios))
+    weights_record = []
+    
+    for i in range(num_portfolios):
+        weights = np.random.random(num_assets)
+        weights /= np.sum(weights)
+        weights_record.append(weights)
+        
+        portfolio_return, portfolio_volatility = portfolio_performance(weights, mean_returns, cov_matrix)
+        
+        results[0, i] = portfolio_return
+        results[1, i] = portfolio_volatility
+        results[2, i] = (portfolio_return - risk_free_rate) / portfolio_volatility
+        results[3, i] = np.sum(weights)
+    
+    return results, weights_record
+
+# Generate portfolios
+num_portfolios = 20000
+results, weights_record = generate_random_portfolios(num_portfolios, mean_returns, cov_matrix, risk_free_rate)
+
+# Plot advanced efficient frontier, max Sharpe, and min variance portfolios
+plt.figure(figsize=(14, 9))
+
+# Efficient frontier scatter plot
+plt.scatter(results[1, :], results[0, :], c=results[2, :], cmap='plasma', marker='o', s=20, alpha=0.6)
+plt.colorbar(label='Sharpe Ratio')
+
+# Highlight max Sharpe ratio portfolio
+plt.scatter(max_sharpe_volatility, max_sharpe_returns, marker='*', color='r', s=400, label='Max Sharpe Ratio')
+
+# Highlight min volatility portfolio
+plt.scatter(min_vol_volatility, min_vol_returns, marker='*', color='b', s=400, label='Min Volatility')
+
+# Add grid for better readability
+plt.grid(True, linestyle='--', alpha=0.6)
+
+# Set plot labels and title
+plt.title('Efficient Frontier with Max Sharpe and Min Volatility Portfolios', fontsize=18, fontweight='bold')
+plt.xlabel('Volatility (Std. Deviation)', fontsize=14, fontweight='bold')
+plt.ylabel('Expected Return', fontsize=14, fontweight='bold')
+
+# Annotate key points with returns and volatility (Move to the left for max Sharpe)
+plt.annotate(f'Return: {max_sharpe_returns:.2%}\nVolatility: {max_sharpe_volatility:.2%}', 
+             xy=(max_sharpe_volatility, max_sharpe_returns), 
+             xytext=(max_sharpe_volatility - 0.05, max_sharpe_returns - 0.01),  # Adjusted to the left
+             arrowprops=dict(facecolor='red', shrink=0.05), 
+             fontsize=12, color='r', fontweight='bold')
+
+plt.annotate(f'Return: {min_vol_returns:.2%}\nVolatility: {min_vol_volatility:.2%}', 
+             xy=(min_vol_volatility, min_vol_returns), xytext=(min_vol_volatility + 0.02, min_vol_returns + 0.01),
+             arrowprops=dict(facecolor='blue', shrink=-0.1), fontsize=12, color='b', fontweight='bold')
+
+# Show legend
+plt.legend(labelspacing=0.8, fontsize=12)
+
+# Display plot
+plt.show()
+
+# Print optimized results
+print("Max Sharpe Ratio Portfolio:")
+print("Return:", max_sharpe_returns)
+print("Volatility:", max_sharpe_volatility)
+print("Weights:", optimal_sharpe['x'])
+
+print("\nMinimum Variance Portfolio:")
+print("Return:", min_vol_returns)
+print("Volatility:", min_vol_volatility)
+print("Weights:", optimal_min_vol['x'])
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+import yfinance as yf
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Download stock data for the selected tickers
+tickers = ['TSLA', 'AMZN', 'META', 'JNJ', 'XOM', 'JPM', 'KO', 'INTC', 'NFLX', 'PG']
+data = yf.download(tickers, start='2015-01-01', end='2023-12-31')['Adj Close']
+
+# Calculate daily returns
+returns = data.pct_change().dropna()
+
+# Define a function to calculate the rolling Sharpe ratio
+def rolling_sharpe_ratio(returns, window, risk_free_rate=0.0001):
+    rolling_mean = returns.rolling(window=window).mean()
+    rolling_std = returns.rolling(window=window).std()
+    sharpe_ratio = (rolling_mean - risk_free_rate) / rolling_std
+    return sharpe_ratio
+
+# Plot setup with subplots (4 rows, 1 column)
+fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 20))
+
+# Define different rolling windows (30, 60, 120, 252 days)
+windows = [30, 60, 120, 252]
+colors = ['blue', 'green', 'red', 'purple']  # Different colors for different horizons
+stock = 'TSLA'  # We'll plot the Sharpe ratios for Tesla
+
+# Plot rolling Sharpe ratios for each window in separate subplots
+for i, window in enumerate(windows):
+    rolling_sharpe = rolling_sharpe_ratio(returns[stock], window)
+    axes[i].plot(rolling_sharpe, label=f'{window}-day Rolling Sharpe Ratio', color=colors[i])
+    axes[i].set_title(f'{window}-Day Rolling Sharpe Ratio for {stock}', fontsize=12)
+    axes[i].set_xlabel('Date')
+    axes[i].set_ylabel('Sharpe Ratio')
+    axes[i].grid(True)
+    axes[i].legend()
+
+# Adjust layout to prevent overlap
+plt.tight_layout()
+
+# Show the final combined figure
+plt.show()
+
+# Plot rolling Sharpe ratios for all stocks with a 252-day horizon (1-year window)
+fig, axes = plt.subplots(nrows=5, ncols=2, figsize=(14, 20))
+axes = axes.flatten()  # Flatten the 2D array of axes for easier iteration
+
+# Plot rolling Sharpe ratio for each stock in its own subplot
+for i, ticker in enumerate(tickers):
+    rolling_sharpe = rolling_sharpe_ratio(returns[ticker], 252)
+    axes[i].plot(rolling_sharpe, label=f'{ticker} 252-day Sharpe Ratio', color='blue')
+    axes[i].set_title(f'{ticker} 1-Year Rolling Sharpe Ratio')
+    axes[i].set_xlabel('Date')
+    axes[i].set_ylabel('Sharpe Ratio')
+    axes[i].grid(True)
+    axes[i].legend()
+
+# Adjust layout to prevent overlap
+plt.tight_layout()
+
+# Show the final combined figure
+plt.show()
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import yfinance as yf
+from scipy.optimize import minimize
+
+# Download stock data for the selected tickers
+tickers = ['TSLA', 'AMZN', 'META', 'JNJ', 'XOM', 'JPM', 'KO', 'INTC', 'NFLX', 'PG']
+data = yf.download(tickers, start='2015-01-01', end='2023-12-31')['Adj Close']
+
+# Calculate daily returns
+returns = data.pct_change().dropna()
+
+# Portfolio optimization functions
+def portfolio_performance(weights, returns):
+    portfolio_return = np.sum(weights * returns.mean()) * 252
+    portfolio_volatility = np.sqrt(np.dot(weights.T, np.dot(returns.cov() * 252, weights)))
+    return portfolio_return, portfolio_volatility
+
+def negative_sharpe_ratio(weights, returns):
+    portfolio_return, portfolio_volatility = portfolio_performance(weights, returns)
+    return -portfolio_return / portfolio_volatility
+
+def minimize_volatility(weights, returns):
+    return portfolio_performance(weights, returns)[1]
+
+def optimize_portfolio(returns, target_return=None):
+    num_assets = len(returns.columns)
+    constraints = [{'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}]
+    bounds = tuple((0, 1) for _ in range(num_assets))
+    
+    if target_return is not None:
+        # Add the return constraint for a specific target return
+        constraints.append({'type': 'eq', 'fun': lambda weights: portfolio_performance(weights, returns)[0] - target_return})
+    
+    initial_weights = num_assets * [1. / num_assets,]
+    
+    # Minimize Volatility (Global Minimum Variance Portfolio)
+    optimized = minimize(minimize_volatility, initial_weights, args=returns, method='SLSQP', bounds=bounds, constraints=constraints)
+    
+    return optimized
+
+# Efficient Frontier calculation
+target_returns = np.linspace(0.10, 0.35, 50)  # Set a range of target returns
+frontier_volatilities = []
+
+for target_return in target_returns:
+    optimized_portfolio = optimize_portfolio(returns, target_return)
+    _, portfolio_volatility = portfolio_performance(optimized_portfolio.x, returns)
+    frontier_volatilities.append(portfolio_volatility)
+
+# Generate 10,000 random portfolios
+num_portfolios = 10000
+results = np.zeros((3, num_portfolios))
+
+for i in range(num_portfolios):
+    weights = np.random.random(len(tickers))
+    weights /= np.sum(weights)
+    portfolio_return, portfolio_volatility = portfolio_performance(weights, returns)
+    results[0, i] = portfolio_return
+    results[1, i] = portfolio_volatility
+    results[2, i] = portfolio_return / portfolio_volatility
+
+# Max Sharpe Ratio Portfolio
+optimized_sharpe = minimize(negative_sharpe_ratio, len(tickers)*[1./len(tickers)], args=returns, method='SLSQP', bounds=tuple((0, 1) for _ in range(len(tickers))), constraints={'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1})
+
+# Minimum Variance Portfolio
+min_variance_portfolio = optimize_portfolio(returns)
+
+# Plot efficient frontier
+plt.figure(figsize=(10, 7))
+plt.scatter(results[1, :], results[0, :], c=results[2, :], cmap='viridis', marker='o', alpha=0.3)
+plt.plot(frontier_volatilities, target_returns, 'r--', linewidth=2, label='Efficient Frontier')
+plt.colorbar(label='Sharpe Ratio')
+plt.xlabel('Volatility (Standard Deviation)')
+plt.ylabel('Expected Return')
+plt.title('Efficient Frontier (Markowitz Model)')
+
+# Add Max Sharpe Ratio portfolio point
+max_sharpe_return, max_sharpe_volatility = portfolio_performance(optimized_sharpe.x, returns)
+plt.scatter(max_sharpe_volatility, max_sharpe_return, color='red', marker='*', s=200, label='Max Sharpe Ratio')
+plt.text(max_sharpe_volatility+0.002, max_sharpe_return, f'Return: {max_sharpe_return:.2%}\nVolatility: {max_sharpe_volatility:.2%}', color='red')
+
+# Add Minimum Variance portfolio point
+min_var_return, min_var_volatility = portfolio_performance(min_variance_portfolio.x, returns)
+plt.scatter(min_var_volatility, min_var_return, color='blue', marker='*', s=200, label='Min Variance Portfolio')
+plt.text(min_var_volatility+0.002, min_var_return, f'Return: {min_var_return:.2%}\nVolatility: {min_var_volatility:.2%}', color='blue')
+
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Plot cumulative returns for Max Sharpe Ratio and Equal-Weighted portfolios
+def cumulative_returns(weights, returns):
+    portfolio_returns = np.dot(returns, weights)
+    cumulative_return = (1 + portfolio_returns).cumprod() - 1
+    return cumulative_return
+
+# Cumulative returns for Max Sharpe Ratio portfolio
+cumulative_sharpe = cumulative_returns(optimized_sharpe.x, returns)
+
+# Equal-weighted portfolio (naive approach)
+equal_weights = np.ones(len(tickers)) / len(tickers)
+cumulative_equal = cumulative_returns(equal_weights, returns)
+
+# Plot cumulative returns comparison
+plt.figure(figsize=(10, 7))
+plt.plot(cumulative_sharpe, label='Max Sharpe Ratio Portfolio', color='red')
+plt.plot(cumulative_equal, label='Equal Weighted Portfolio', color='blue')
+plt.title('Cumulative Returns Comparison (Markowitz Model)')
+plt.xlabel('Date')
+plt.ylabel('Cumulative Return')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Portfolio weights along the efficient frontier
+plt.figure(figsize=(10, 6))
+optimized_frontier_weights = []
+for target_return in target_returns:
+    optimized_portfolio = optimize_portfolio(returns, target_return)
+    optimized_frontier_weights.append(optimized_portfolio.x)
+
+weights_df = pd.DataFrame(optimized_frontier_weights, columns=tickers, index=target_returns)
+weights_df.plot.area(stacked=True, figsize=(10, 6), colormap='tab20')
+plt.title('Portfolio Weights Along the Efficient Frontier')
+plt.xlabel('Expected Return')
+plt.ylabel('Portfolio Weight')
+plt.grid(True)
+plt.show()
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import yfinance as yf
+from scipy.optimize import minimize
+
+# Download stock data for the selected tickers
+tickers = ['TSLA', 'AMZN', 'META', 'JNJ', 'XOM', 'JPM', 'KO', 'INTC', 'NFLX', 'PG']
+data = yf.download(tickers, start='2015-01-01', end='2023-12-31')['Adj Close']
+
+# Calculate daily returns
+returns = data.pct_change().dropna()
+
+# Portfolio optimization functions
+def portfolio_performance(weights, returns):
+    portfolio_return = np.sum(weights * returns.mean()) * 252
+    portfolio_volatility = np.sqrt(np.dot(weights.T, np.dot(returns.cov() * 252, weights)))
+    return portfolio_return, portfolio_volatility
+
+def negative_sharpe_ratio(weights, returns):
+    portfolio_return, portfolio_volatility = portfolio_performance(weights, returns)
+    return -portfolio_return / portfolio_volatility
+
+def minimize_volatility(weights, returns):
+    return portfolio_performance(weights, returns)[1]
+
+def optimize_portfolio(returns, target_return=None):
+    num_assets = len(returns.columns)
+    constraints = [{'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}]
+    bounds = tuple((0, 1) for _ in range(num_assets))
+    
+    if target_return is not None:
+        # Add the return constraint for a specific target return
+        constraints.append({'type': 'eq', 'fun': lambda weights: portfolio_performance(weights, returns)[0] - target_return})
+    
+    initial_weights = num_assets * [1. / num_assets,]
+    
+    # Minimize Volatility (Global Minimum Variance Portfolio)
+    optimized = minimize(minimize_volatility, initial_weights, args=returns, method='SLSQP', bounds=bounds, constraints=constraints)
+    
+    return optimized
+
+# Max Sharpe Ratio Portfolio
+optimized_sharpe = minimize(negative_sharpe_ratio, len(tickers)*[1./len(tickers)], args=returns, method='SLSQP', bounds=tuple((0, 1) for _ in range(len(tickers))), constraints={'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1})
+
+# Minimum Variance Portfolio
+min_variance_portfolio = optimize_portfolio(returns)
+
+# Calculate portfolio performance for Max Sharpe and Minimum Variance portfolios
+max_sharpe_return, max_sharpe_volatility = portfolio_performance(optimized_sharpe.x, returns)
+min_var_return, min_var_volatility = portfolio_performance(min_variance_portfolio.x, returns)
+
+# Print the key portfolio results for Max Sharpe Ratio and Minimum Variance Portfolio
+print("----- Max Sharpe Ratio Portfolio -----")
+print(f"Expected Return: {max_sharpe_return:.4f}")
+print(f"Volatility (Standard Deviation): {max_sharpe_volatility:.4f}")
+print(f"Sharpe Ratio: {max_sharpe_return / max_sharpe_volatility:.4f}")
+print("\nWeights for Max Sharpe Ratio Portfolio:")
+for ticker, weight in zip(tickers, optimized_sharpe.x):
+    print(f"{ticker}: {weight:.4%}")
+
+print("\n----- Minimum Variance Portfolio -----")
+print(f"Expected Return: {min_var_return:.4f}")
+print(f"Volatility (Standard Deviation): {min_var_volatility:.4f}")
+print("\nWeights for Minimum Variance Portfolio:")
+for ticker, weight in zip(tickers, min_variance_portfolio.x):
+    print(f"{ticker}: {weight:.4%}")
+
+# Efficient Frontier calculation
+target_returns = np.linspace(0.10, 0.35, 50)  # Set a range of target returns
+frontier_volatilities = []
+optimized_frontier_weights = []
+
+for target_return in target_returns:
+    optimized_portfolio = optimize_portfolio(returns, target_return)
+    _, portfolio_volatility = portfolio_performance(optimized_portfolio.x, returns)
+    frontier_volatilities.append(portfolio_volatility)
+    optimized_frontier_weights.append(optimized_portfolio.x)
+
+# Print a sample of the portfolio weights along the efficient frontier
+print("\n----- Sample Portfolio Weights Along the Efficient Frontier -----")
+for i, target_return in enumerate(target_returns[::10]):
+    print(f"\nTarget Return: {target_return:.2%}")
+    for ticker, weight in zip(tickers, optimized_frontier_weights[i*10]):
+        print(f"{ticker}: {weight:.4%}")
